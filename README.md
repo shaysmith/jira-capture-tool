@@ -58,4 +58,4 @@ Ensure you have a valid OpenAI API Key before sending requests.
 - Google Chrome or Chromium (Manifest V3 support required).
 
 ## License
-Add a license as needed for your project.
+This project is licensed under the [MIT License](LICENSE).
