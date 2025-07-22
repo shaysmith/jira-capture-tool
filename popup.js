@@ -283,25 +283,15 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Copy failed');
       }
     });
-    // Copy raw Jira ticket payload
+    // Copy processed Jira content (flattened)
     const copyJiraTicketButton = document.getElementById('copyJiraTicket');
     copyJiraTicketButton.addEventListener('click', async () => {
       try {
-        // Get current active tab URL
-        const [tab] = await new Promise(resolve => chrome.tabs.query({ active: true, currentWindow: true }, resolve));
-        const url = tab.url || '';
-        const parsed = parseJiraUrl(url);
-        if (!parsed) throw new Error('Not a Jira issue page');
-        const { domain, issueKey } = parsed;
-        const apiUrl = `https://${domain}/rest/api/2/issue/${issueKey}?fields=*all&expand=renderedFields,names`;
-        const jiraResp = await fetch(apiUrl, { credentials: 'include' });
-        if (!jiraResp.ok) throw new Error('Jira API HTTP ' + jiraResp.status);
-        const data = await jiraResp.json();
-        const text = JSON.stringify(data, null, 2);
-        await navigator.clipboard.writeText(text);
-        alert('Jira payload copied to clipboard!');
+        const jiraText = await fetchJiraContent();
+        await navigator.clipboard.writeText(jiraText);
+        alert('Jira content copied to clipboard!');
       } catch (err) {
-        alert('Copy Jira payload failed: ' + (err.message || err));
+        alert('Copy Jira content failed: ' + (err.message || err));
       }
     });
   })();
