@@ -4,33 +4,96 @@
   <meta charset="utf-8">
   <title>Jira Capture Tool</title>
   <style>
-    body { position: relative; width:600px; margin:0; padding:12px; font-family:sans-serif; }
-    #promptsSection, #responseSection { margin-top:12px; }
-    select, button { margin-right:8px; }
-    /* Only allow vertical resize to constrain width to pane */
-    textarea { width:100%; font-family:monospace; font-size:12px; resize: vertical; }
-    #response { height:50vh; }
-    /* Layout buttons under the response textarea */
+    :root {
+      --md-sys-color-primary: #6750A4;
+      --md-sys-color-on-primary: #FFFFFF;
+      --md-sys-color-secondary: #625B71;
+      --md-sys-color-on-secondary: #FFFFFF;
+      --md-sys-color-surface: #FFFBFE;
+      --md-sys-color-on-surface: #1C1B1F;
+      --md-sys-color-outline: #79747E;
+      --md-sys-elevation-surface: 0px 1px 2px rgba(0,0,0,0.05);
+      --md-sys-elevation-surface-variant: 0px 1px 3px rgba(0,0,0,0.1);
+      --md-sys-shape-corner-small: 4px;
+    }
+    body {
+      font-family: sans-serif;
+      background-color: var(--md-sys-color-surface);
+      color: var(--md-sys-color-on-surface);
+      margin: 0;
+      padding: 16px;
+      /* Allow popup to expand if needed, but not shrink below comfort width */
+      min-width: 360px;
+     box-sizing: border-box;
+    }
+    #promptsSection {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    label {
+      font-weight: 500;
+    }
+    select {
+      flex: 1;
+      font-size: 1rem;
+      padding: 8px 12px;
+      border: 1px solid var(--md-sys-color-outline);
+      border-radius: var(--md-sys-shape-corner-small);
+      background-color: #FFFFFF;
+      color: var(--md-sys-color-on-surface);
+      box-sizing: border-box;
+    }
+    button {
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 8px 16px;
+      min-height: 36px;
+      border: none;
+      border-radius: var(--md-sys-shape-corner-small);
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+      cursor: pointer;
+      box-shadow: var(--md-sys-elevation-surface-variant);
+    }
+    button:hover {
+      box-shadow: 0px 2px 4px rgba(0,0,0,0.15);
+    }
+    textarea {
+      width: 100%;
+      font-family: monospace;
+      font-size: 1rem;
+      padding: 8px;
+      border: 1px solid var(--md-sys-color-outline);
+      border-radius: var(--md-sys-shape-corner-small);
+      background-color: #FFFFFF;
+      color: var(--md-sys-color-on-surface);
+      resize: vertical;
+      box-sizing: border-box;
+      min-height: 200px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
     #responseButtons {
-      margin-top: 8px;
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      margin-top: 8px;
     }
     #responseButtons button {
-      margin: 8px;
+      margin: 0 4px;
     }
-    /* Arrange button groups horizontally */
-    #responseButtons > .button-group {
+    #leftButtons, #centerButtons, #rightButtons {
       display: flex;
+      gap: 4px;
     }
   </style>
 </head>
 <body>
   <!-- Settings button moved down under the response -->
   <div id="promptsSection">
-    <label for="promptSelect">Prompt:</label>
-    <select id="promptSelect"></select>
+    <select id="promptSelect" aria-label="Prompt"></select>
     <button id="sendButton">Send to AI Playground</button>
   </div>
   <div id="responseSection">
