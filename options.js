@@ -10,6 +10,47 @@ document.addEventListener('DOMContentLoaded', () => {
   const exportPromptsBtn = document.getElementById('exportPrompts');
   const importPromptsBtn = document.getElementById('importPrompts');
   const importFileInput = document.getElementById('importFileInput');
+
+  // Utility function to parse CSV text into rows (arrays of fields), handling quoted fields and newlines
+  function parseCSV(text) {
+    // Remove BOM if present
+    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+    const rows = [];
+    let row = [];
+    let field = '';
+    let inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (c === '"') {
+        if (inQuotes && i + 1 < text.length && text[i+1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (c === ',' && !inQuotes) {
+        row.push(field);
+        field = '';
+      } else if ((c === '\r' || c === '\n') && !inQuotes) {
+        // End of line
+        if (c === '\r' && i + 1 < text.length && text[i+1] === '\n') {
+          i++;
+        }
+        row.push(field);
+        rows.push(row);
+        row = [];
+        field = '';
+      } else {
+        field += c;
+      }
+    }
+    // Add last field/row
+    if (field !== '' || row.length > 0) {
+      row.push(field);
+      rows.push(row);
+    }
+    return rows;
+  }
   let prompts = [];
   let editingIndex = null;
   chrome.storage.local.get({ apiKey: '', prompts: [], model: '' }, (data) => {
@@ -119,35 +160,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      const text = reader.result || '';
-      const lines = text.trim().split(/\r?\n/);
-      if (lines.length < 2) { alert('CSV file contains no prompt entries.'); return; }
-      const imported = [];
-      // Parse CSV rows, skipping header
-      for (let i = 1; i < lines.length; i++) {
-        const line = lines[i];
-        let vals = [];
-        let cur = '';
-        let inQ = false;
-        for (let chIdx = 0; chIdx < line.length; chIdx++) {
-          const ch = line[chIdx];
-          if (ch === '"') {
-            if (inQ && line[chIdx+1] === '"') { cur += '"'; chIdx++; }
-            else { inQ = !inQ; }
-          } else if (ch === ',' && !inQ) {
-            vals.push(cur); cur = '';
-          } else { cur += ch; }
-        }
-        vals.push(cur);
-        if (vals.length >= 2) {
-          imported.push({ title: vals[0], prompt: vals[1] });
-        }
+      let text = reader.result || '';
+      const rows = parseCSV(text);
+      if (rows.length < 2) {
+        alert('CSV file contains no prompt entries.');
+        return;
       }
+      const imported = rows.slice(1)
+        .filter(row => row.length >= 2)
+        .map(row => ({ title: row[0], prompt: row[1] }));
       if (imported.length === 0) {
         alert('No valid prompts parsed from CSV.');
         return;
       }
-      // Identify duplicates (existing titles) and new prompts
+    // Identify duplicates (existing titles) and new prompts
       const existingTitles = prompts.map(p => p.title);
       const duplicates = imported.filter(p => existingTitles.includes(p.title));
       // Ask before replacing duplicates
